@@ -1,4 +1,4 @@
-FROM insideo/jdk8:8u152
+FROM openjdk:8-slim
 
 VOLUME /tmp
 ARG JAR_FILE
