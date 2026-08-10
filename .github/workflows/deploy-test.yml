@@ -3,7 +3,7 @@ name: Build Sanity + Deploy Test Environment
 on:
   workflow_dispatch:
   push:
-    branches: [aitest]
+    branches: [aitest] 
   pull_request:
     branches: [aitest]
   workflow_run:
