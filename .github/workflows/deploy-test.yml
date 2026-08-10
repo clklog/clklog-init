@@ -1,19 +1,52 @@
-name: Deploy Test Environment
+name: Build Sanity + Deploy Test Environment
 
 on:
   workflow_dispatch:
+  push:
+    branches: [aitest]
+  pull_request:
+    branches: [aitest]
   workflow_run:
     workflows:
       - Node.js CI
+    branches: [aitest]
     types:
       - completed
 
-jobs:
-  deploy-test:
-    runs-on:
-      - self-hosted
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
+env:
+  JAVA_VERSION: "8"
+  JAVA_DISTRO: "temurin"
+
+jobs:
+  build-sanity:
+    name: mvn compile + test if any (P3 no coverage gate, 06 §4)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRO }}
+          cache: maven
+      - name: mvn test (P3: 允许 0 用例，不卡覆盖率)
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x mvnw mvnw.cmd || true
+          ./mvnw -B -ntp clean test -DfailIfNoTests=false -Djacoco.skip=true
+
+  deploy-test:
+    name: deploy-test (self-hosted clklog-ce-runner @ 10.10.222.66, only on aitest branch)
+    needs: [build-sanity]
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/aitest'
+    runs-on: [self-hosted, clklog-ce-runner]
+    steps:
+      - uses: actions/checkout@v4
       - name: Deploy
         run: |
           echo "Runner: $RUNNER_NAME"
