@@ -63,7 +63,7 @@ public class InitProcessBoss {
         try {
             thread.join();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            logger.error("unexpected error", e);
         }
 
         if (logger.isInfoEnabled()) {

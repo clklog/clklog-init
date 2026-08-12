@@ -49,11 +49,25 @@ public class InitSetting {
     }
 
     public String getLogDb() {
-        return logDb;
+        return sanitizeLogDb(logDb);
     }
 
     public void setLogDb(String logDb) {
-        this.logDb = logDb;
+        this.logDb = sanitizeLogDb(logDb);
+    }
+
+    /**
+     * 仅允许字母数字下划线，防止库名注入 SQL。
+     */
+    private static String sanitizeLogDb(String logDb) {
+        if (logDb == null || logDb.trim().isEmpty()) {
+            return "clklog";
+        }
+        String trimmed = logDb.trim();
+        if (!trimmed.matches("^[A-Za-z0-9_]+$")) {
+            throw new IllegalArgumentException("invalid init.log-db: " + logDb);
+        }
+        return trimmed;
     }
 
     public int getSleepMillisecAfterOneScript() {

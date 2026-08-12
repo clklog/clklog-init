@@ -49,7 +49,7 @@ public class InOrderCalcProcessBoss {
 
         running = true;
 
-        Thread thread = new Thread(new Runnable() {
+        thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 work();
@@ -101,15 +101,18 @@ public class InOrderCalcProcessBoss {
     public void stop() {
         running = false;
 
-        thread.interrupt();
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        if (thread != null) {
+            thread.interrupt();
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                logger.error("", e);
+            }
 
-        if (logger.isInfoEnabled()) {
-            logger.info(thread.getName() + " stopping...");
+            if (logger.isInfoEnabled()) {
+                logger.info(thread.getName() + " stopping...");
+            }
         }
     }
 }
